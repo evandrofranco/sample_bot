@@ -1,6 +1,8 @@
 # Distribution / packaging
 node_modules/
 __pycache__/
+conectors/__pycache__/
+api_calls/__pycache__/
 
 # Serverless directories
 .serverless

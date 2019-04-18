@@ -1,6 +1,6 @@
 # AWS Framework
 
-Este projeto Demo para fazer um Echo Bot do Telegram, hospedado na AWS 
+Este projeto Demo para fazer um Bot do Telegram, hospedado na AWS (lambda) 
 
 # Pré-Requisitos
 
