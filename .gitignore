@@ -6,3 +6,4 @@ api_calls/__pycache__/
 
 # Serverless directories
 .serverless
+bin/
