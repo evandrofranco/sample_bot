@@ -4,7 +4,7 @@ import requests
 import telegram
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import (Updater, CommandHandler, MessageHandler, Filters, RegexHandler,
-                          ConversationHandler)
+                          ConversationHandler, PicklePersistence)
 from conectors.luis_connector import LUISConnector
 from api_calls.redmine import Redmine
 
@@ -28,9 +28,9 @@ CONSULTAR_CHAMADO = 'Consultar Chamado'
 SAUDACAO = 'Saudacao'
 
 
-def configure_telegram():
+def get_telegram_token():
     TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
-    return telegram.Bot(TELEGRAM_TOKEN)
+    return TELEGRAM_TOKEN
 
 
 def error(bot, context):
@@ -38,25 +38,7 @@ def error(bot, context):
     print('Update "%s" caused error "%s"', bot, context.error)
 
 
-def publish_telegram_msg(event, context):
-
-    bot = configure_telegram()
-    if event.get('httpMethod') == 'POST' and event.get('body'):
-        update = telegram.Update.de_json(json.loads(event.get('body')), bot)
-        # print(update)
-        chat_id = context.message.chat.id
-        text = context.message.text
-        name = context.message.from_user.first_name
-
-        response = create_msg_response(text, name)
-        if response != '':
-            bot.sendMessage(chat_id=chat_id, text=response)
-            return OK_RESPONSE
-
-    return ERROR_RESPONSE
-
-
-def control_flux(bot, context):
+def control_flow(bot, context):
     response = ''
     intencao, entity, query = tratar_intencao(context.message.text)
     if intencao == SAUDACAO:
@@ -74,14 +56,13 @@ def control_flux(bot, context):
 
 
 def tratar_intencao(text):
-    print("to no luis")
     luis_conn = LUISConnector(model_file=None)
     intent = luis_conn._process(text)
     intencao = intent.intents[0].intent
     entity = ''
     if len(intent.entities) > 0:
         entity = intent.entities[-1].resolution['value']
-    print(intencao)
+    
     return intencao, entity, intent.query
 
 
@@ -94,14 +75,14 @@ def tratar_retorno(text):
 
 
 def tratar_saudacao(update, context):
-    print("Tratando saudacao")
+   
     response = "Olá {}, sou um bot de demonstração!!\n".format(context.message.from_user.first_name)
     response += "Estou aqui para criar e consultar chamados.\n"
     response += "\n1- Para consultar chamados, utilize a sintaxe:"
     response += "\n       'você poderia consultar o chamado 1'"
     response += "\n\n2- Para cadastrar chamados, utilize a sintaxe:"
     response += "\n       'cadastrar um chamado para: perda de celular'"
-    print(response)
+   
     context.message.reply_text(response)
     return IDLE
 
@@ -151,27 +132,28 @@ def cancel(update, context):
     return ConversationHandler.END
 
 
-def tratar_nao_reconhecimento(first_name):
+def tratar_nao_reconhecimento(bot, context):
+    user = context.message.from_user
     response = "Olá {}, não entendi o que você disse. Poderia repetir?\n" \
-        .format(first_name)
-    return response
+        .format(user.first_name)
+    return IDLE
 
 
 def main():
     # Create the updater and pass it your bot's token.
     # Make sure to set use_context=True to use the new context based callbacks
     # Post version 12 this will no longer be necessary
-    updater = Updater("814759196:AAGo4IT2z_ShbXO6avRMIxliK_h9t8rZUVY")
+    pp = PicklePersistence(filename='conversationbot')
+    
+    updater = Updater(get_telegram_token(), persistence=pp)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # Add conversation handler with the states GENDER, PHOTO, LOCATION and BIO
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler('start', tratar_saudacao)],
-        # SAUDACAO, CRIAR_CHAMADO, CHAMADO_CRIADO, CONSULTAR_CHAMADO, CHAMADO_CONSULTADO = range(5)
         states={
-            IDLE: [MessageHandler(Filters.text, control_flux)],
+            IDLE: [MessageHandler(Filters.text, control_flow)],
             CONSULTAR_CHAMADO_STATE: [MessageHandler(Filters.text,consultar_chamado)],
             CRIAR_CHAMADO: [MessageHandler(Filters.text,abrir_chamado)]
 
@@ -187,12 +169,32 @@ def main():
 
     # Start the Bot
     updater.start_polling()
-    print("Up")
+    print("Bot is now pooling for messages")
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
+
+"""
+def publish_telegram_msg(event, context):
+
+    bot = configure_telegram()
+    if event.get('httpMethod') == 'POST' and event.get('body'):
+        update = telegram.Update.de_json(json.loads(event.get('body')), bot)
+        chat_id = context.message.chat.id
+        text = context.message.text
+        name = context.message.from_user.first_name
+
+        response = create_msg_response(text, name)
+        if response != '':
+            bot.sendMessage(chat_id=chat_id, text=response)
+            return OK_RESPONSE
+
+    return ERROR_RESPONSE
+
+"""
+
 
 
 '''
@@ -244,8 +246,5 @@ if __name__ == '__main__':
         '29hthkrsx0.execute-api.us-east-2.amazonaws.com', 'apiId': '29hthkrsx0'}, 
         'body': '{"update_id":241554614,\n"message":{"message_id":131,"from":{"id":68330001,"is_bot":false,"first_name":"Evandro","last_name":"Franco","username":"evandrofranco","language_code":"pt-br"},"chat":{"id":68330001,"first_name":"Evandro","last_name":"Franco","username":"evandrofranco","type":"private"},"date":1555495019,"text":"você poderia consultar o chamado 1"}}', 'isBase64Encoded': False}, '')
 '''
-
-
-if __name__ == '__main__':
-    print("Starting")
+if __name__ == "__main__":
     main()
