@@ -5,6 +5,7 @@ import requests
 import telegram
 from conectors.luis_connector import LUISConnector
 from api_calls.redmine import Redmine
+from api_calls.cartola import Cartola
 
 OK_RESPONSE = {
     'statusCode': 200,
@@ -19,6 +20,7 @@ ERROR_RESPONSE = {
 ABRIR_CHAMADO = 'Abrir Chamado'
 CONSULTAR_CHAMADO = 'Consultar Chamado'
 SAUDACAO = 'Saudacao'
+LIGA = 'Consultar Liga'
 
 
 def configure_telegram():
@@ -49,6 +51,8 @@ def create_msg_response(input, first_name):
     intencao, entity, query = tratar_intencao(input)
     if intencao == SAUDACAO:
         response = tratar_saudacao(first_name)
+    elif intencao == LIGA:
+        response = tratar_cartola_liga(input)
     elif intencao == CONSULTAR_CHAMADO:
         response = tratar_consultar_chamado(entity, first_name)
     elif intencao == ABRIR_CHAMADO:
@@ -61,11 +65,25 @@ def create_msg_response(input, first_name):
 def tratar_intencao(input):
     luis_conn = LUISConnector(model_file=None)
     intent = luis_conn._process(input)
+    # print(intent)
     intencao = intent.intents[0].intent
     entity = ''
     if len(intent.entities) > 0:
-        entity = intent.entities[-1].resolution['value']
+        #entity = intent.entities[-1].resolution['value']
+        entity = intent.entities[-1].entity
     return intencao, entity, intent.query
+
+
+def tratar_cartola_liga(consulta):
+    cartola = Cartola()
+    frase = consulta.split('liga')[1].replace('?', '')
+    print(frase)
+    ligas = cartola.ligas(frase)
+    resp = 'Foram encontradas {} Ligas! \n'.format(len(ligas))
+    for liga in ligas:
+        resp += '* {} \n\t - descrição: {} \n'.format(
+            liga.nome, liga.descricao)
+    return resp
 
 
 def tratar_retorno(input):
@@ -103,6 +121,7 @@ def tratar_abrir_chamado(input):
     response = input.split(':')
     if len(response) > 1:
         resp = red.execute_post(response[1])
+        print(resp)
         response = "Chamado {} aberto com sucesso\n".format(
             resp.get('issue').get('id'))
     else:
@@ -118,7 +137,8 @@ def tratar_nao_reconhecimento(first_name):
 
 '''
 if __name__ == '__main__':
-    # a = tratar_intencao('Oi')
+    # a = tratar_intencao('Poderia consultar a liga ete old')
+    # b = create_msg_response('Poderia consultar a liga ete old?', 'Evandro')
     # print(a)
     publish_telegram_msg({'resource': '/teleg-bot-demo', 
         'path': '/teleg-bot-demo', 'httpMethod': 'POST', 
@@ -163,5 +183,7 @@ if __name__ == '__main__':
         'cognitoAuthenticationProvider': None, 'userArn': None, 
         'userAgent': None, 'user': None}, 'domainName': 
         '29hthkrsx0.execute-api.us-east-2.amazonaws.com', 'apiId': '29hthkrsx0'}, 
-        'body': '{"update_id":241554614,\n"message":{"message_id":131,"from":{"id":68330001,"is_bot":false,"first_name":"Evandro","last_name":"Franco","username":"evandrofranco","language_code":"pt-br"},"chat":{"id":68330001,"first_name":"Evandro","last_name":"Franco","username":"evandrofranco","type":"private"},"date":1555495019,"text":"você poderia consultar o chamado 1"}}', 'isBase64Encoded': False}, '')
+        'body': '{"update_id":241554614,\n"message":{"message_id":131,"from":{"id":68330001,"is_bot":false,"first_name":"Evandro","last_name":"Franco","username":"evandrofranco","language_code":"pt-br"},"chat":{"id":68330001,"first_name":"Evandro","last_name":"Franco","username":"evandrofranco","type":"private"},"date":1555495019, \
+        "text":"criar chamado para: Meu e-mail não está funcionando"}}', 'isBase64Encoded': False}, ''
+        )
 '''

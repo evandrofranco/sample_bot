@@ -1,5 +1,11 @@
 {
     "python.linting.pylintEnabled": false,
     "python.linting.pep8Enabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "files.exclude": {
+        "**/.classpath": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.factorypath": true
+    }
 }

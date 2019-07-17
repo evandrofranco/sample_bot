@@ -11,6 +11,7 @@ Instalar o framework:
     npm install -g serverless
 
     sls plugin install -n serverless-python-requirements
+    sls plugin install -n serverless-plugin-aws-alerts
 
 Rodar os pre-requisitos do Python:
 

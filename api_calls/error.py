@@ -1,0 +1,2 @@
+class CartolaError(Exception):
+    pass

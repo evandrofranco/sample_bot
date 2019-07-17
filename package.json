@@ -2,10 +2,10 @@
   "name": "aws-framework",
   "description": "",
   "version": "0.1.0",
-  "dependencies": {
-    "serverless-plugin-aws-alerts": "^1.2.4"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "serverless-python-requirements": "^4.2.5"
+    "serverless": "^1.47.0",
+    "serverless-plugin-aws-alerts": "^1.2.4",
+    "serverless-python-requirements": "^4.3.0"
   }
 }

@@ -1,16 +1,17 @@
-service: tdc-demo-bot
+service: sample-demo-bot
 
 provider:
   name: aws
   runtime: python3.6
   timeout: 20
   stage: dev
-  region: us-east-2
+  region: us-east-1
   environment:
     TELEGRAM_TOKEN: ${env:TELEGRAM_TOKEN}
     LUIS_APP_ID: ${env:LUIS_APP_ID}
     LUIS_APP_KEY: ${env:LUIS_APP_KEY}
     READMINE_KEY_ID: ${env:READMINE_KEY_ID}
+    READMINE_IP: ${env:READMINE_IP}
 
 
 custom:
@@ -25,16 +26,16 @@ functions:
           path: teleg-bot-demo
           method: post
           cors: true
-    alarms: # merged with function alarms
-      - customAlarm
-      - name: fooAlarm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
-        namespace: 'AWS/Lambda'
-        metric: errors # define custom metrics here
-        threshold: 1
-        statistic: Minimum
-        period: 60
-        evaluationPeriods: 1
-        comparisonOperator: GreaterThanOrEqualToThreshold
+    #alarms: # merged with function alarms
+    #  - customAlarm
+    #  - name: teleg-bot-demo-Alarm # creates new alarm or overwrites some properties of the alarm (with the same name) from definitions
+    #    namespace: 'AWS/Lambda'
+    #    metric: errors # define custom metrics here
+    #    threshold: 1
+    #    statistic: Minimum
+    #    period: 60
+    #    evaluationPeriods: 1
+    #    comparisonOperator: GreaterThanOrEqualToThreshold
 
 
 plugins:

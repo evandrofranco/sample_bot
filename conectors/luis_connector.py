@@ -2,7 +2,7 @@ import luis
 import os
 from conectors.connector import Connector
 
-APPS_PAGE = 'https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/'
+APPS_PAGE = 'https://eastus.api.cognitive.microsoft.com/luis/v2.0/apps/'
 
 
 class LUISConnector(Connector):
